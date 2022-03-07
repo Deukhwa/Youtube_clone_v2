@@ -133,4 +133,16 @@ a:hover {
 
 #mainContentContainer {
   padding: 10px 30px;
+  display: flex;
+  flex: 1;
+}
+
+/* UPLOAD */
+
+.column {
+  flex: 1;
+  background-color: #fff;
+  min-height: 300px;
+  padding: 20px;
+  box-shadow: rgba(0, 0, 0, 0.17) 0 1px 2px;
 }
