@@ -5,9 +5,11 @@ class VideoProcessor {
   private $con;
   private $sizeLimit = 50000000;
   private $allowedTypes = array("mp4", "flv", "webm", "mkv", "avi", "mov", "mpeg", "mpg", "vob");
-  
+  private $ffmpegPath;
+
   public function __construct($con) {
     $this->con = $con;
+    $this->ffmpegPath = realpath("ffmpeg/ffmpeg.exe");
   }
 
   public function upload($videoUploadData) {
@@ -34,6 +36,16 @@ class VideoProcessor {
 
         if(!$this->insertVideoData($videoUploadData, $finalFilePath)) {
           echo "Insert query failed";
+          return false;
+        }
+
+        if(!$this->converVideoToMp4($tempFilePath, $finalFilePath)) {
+          echo "Upload failed\n";
+          return false;
+        }
+
+        if(!$this->deleteFile($tempFilePath)) {
+          echo "Upload failed\n";
           return false;
         }
 
@@ -83,6 +95,32 @@ class VideoProcessor {
     $query->bindParam(":filePath", $filePath);
 
     return $query->execute();
+  }
+
+  public function converVideoToMp4($tempFilePath, $finalFilePath) {
+    
+    $cmd = "$this->ffmpegPath -i $tempFilePath $finalFilePath 2>&1";
+
+    $outputLog = array();
+    exec($cmd, $outputLog, $returnCode);
+
+    if($returnCode != 0) {
+      //Command filaed
+      foreach($outputLog as $line) {
+        echo $line . "<br>";
+      }
+      return false;
+    }
+
+    return true;
+  }
+
+  private function deleteFile($filePath) {
+    if(!unlink($filePath)) {
+      echo "Could not delete file\n";
+      return false;
+    }
+    return true;
   }
 }
 
